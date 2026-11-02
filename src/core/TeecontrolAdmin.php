@@ -109,12 +109,27 @@ class TeecontrolAdmin
 
     public static function settings_input_field(string $setting, ?string $value = null)
     {
+        // type text as default and placeholder null as default
+        $type = 'text';
+        $placeholder = null;
+        $autocomplete = null;
+
         $value = get_option("teecontrol_course_data_{$setting}");
         if ($setting == 'api_key') {
-            $value = Teecontrol::decrypt($value);
+            // type password as default for api_key field
+            $type = 'password';
+            $autocomplete = 'off';
+
+            // replace value with placeholder if $has_value is not empty
+            // keep old key when saving without new key
+            if (!empty($value)) {
+                $placeholder = '••••••••••••••••••••••••••••••••';
+            }
+
+            $value = '';
         }
 
-        Teecontrol::view('settings/input', compact('value', 'setting'));
+        Teecontrol::view('settings/input', compact('value', 'setting', 'type', 'placeholder', 'autocomplete'));
 
         if ($setting == 'api_key') {
             Teecontrol::view('settings/description', [
@@ -189,11 +204,6 @@ class TeecontrolAdmin
                         update_option($key, $value);
                     } else {
                         add_option($key, $value);
-                    }
-                } else {
-                    // Value is empty. Delete it when it has been set.
-                    if (get_option($key)) {
-                        delete_option($key);
                     }
                 }
             }
